@@ -315,7 +315,7 @@ struct SettingsView: View {
                     Picker("选区读取", selection: $settings.selectionMethod) {
                         ForEach(SelectionMethod.allCases) { Text($0.title).tag($0) }
                     }
-                    Text("自动兼容会优先读取辅助功能，失败后短暂复制所选文本并完整恢复原剪贴板。")
+                    Text("自动兼容仅读取系统辅助功能文本，不会模拟键盘或修改剪贴板。")
                         .font(.caption).foregroundStyle(.secondary)
                     HStack {
                         Text("响应延迟")

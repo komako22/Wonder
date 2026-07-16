@@ -45,7 +45,7 @@ final class SelectionMonitor {
                 let isShiftSelection = event.modifierFlags.contains(.shift)
                 self.mouseDownLocation = nil
                 guard isDrag || isDoubleClick || isShiftSelection else { return }
-                self.scheduleRead(allowClipboardFallback: isDrag || isShiftSelection)
+                self.scheduleRead()
             }
         }) {
             monitors.append(monitor)
@@ -59,24 +59,18 @@ final class SelectionMonitor {
         monitors.removeAll()
     }
 
-    private func scheduleRead(allowClipboardFallback: Bool) {
+    private func scheduleRead() {
         pendingTask?.cancel()
         let nanoseconds = UInt64(max(0.05, settings.selectionDelay) * 1_000_000_000)
         pendingTask = Task { [weak self] in
             try? await Task<Never, Never>.sleep(nanoseconds: nanoseconds)
             guard !Task.isCancelled else { return }
-            await self?.readSelection(allowClipboardFallback: allowClipboardFallback)
+            await self?.readSelection()
         }
     }
 
-    private func readSelection(allowClipboardFallback: Bool) async {
-        var result: SelectionSnapshot?
-        if hasAccessibilityPermission, settings.selectionMethod != .clipboardOnly {
-            result = readAccessibilitySelection()
-        }
-        if result == nil, allowClipboardFallback, settings.selectionMethod != .accessibilityOnly {
-            result = await readClipboardSelection()
-        }
+    private func readSelection() async {
+        let result = hasAccessibilityPermission ? readAccessibilitySelection() : nil
         guard let result, result.signature != lastSignature else { return }
         lastSignature = result.signature
         onSelection?(result)
@@ -107,28 +101,6 @@ final class SelectionMonitor {
             }
         }
         return nil
-    }
-
-    private func readClipboardSelection() async -> SelectionSnapshot? {
-        let pasteboard = NSPasteboard.general
-        let backup = PasteboardSnapshot(pasteboard: pasteboard)
-        pasteboard.clearContents()
-        sendCopyShortcut()
-        try? await Task<Never, Never>.sleep(nanoseconds: 120_000_000)
-        let selected = pasteboard.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines)
-        backup.restore(to: pasteboard)
-        guard let selected, !selected.isEmpty, selected.count <= maximumCharacters else { return nil }
-        return SelectionSnapshot(text: selected, screenRect: fallbackRectNearPointer())
-    }
-
-    private func sendCopyShortcut() {
-        let source = CGEventSource(stateID: .combinedSessionState)
-        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 8, keyDown: true)
-        keyDown?.flags = .maskCommand
-        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 8, keyDown: false)
-        keyUp?.flags = .maskCommand
-        keyDown?.post(tap: .cghidEventTap)
-        keyUp?.post(tap: .cghidEventTap)
     }
 
     private func snapshot(from element: AXUIElement) -> SelectionSnapshot? {
@@ -187,28 +159,5 @@ final class SelectionMonitor {
     private func fallbackRectNearPointer() -> CGRect {
         let point = NSEvent.mouseLocation
         return CGRect(x: point.x - 4, y: point.y - 4, width: 8, height: 8)
-    }
-}
-
-@MainActor
-private struct PasteboardSnapshot {
-    private let items: [[NSPasteboard.PasteboardType: Data]]
-
-    init(pasteboard: NSPasteboard) {
-        items = (pasteboard.pasteboardItems ?? []).map { item in
-            Dictionary(uniqueKeysWithValues: item.types.compactMap { type in
-                item.data(forType: type).map { (type, $0) }
-            })
-        }
-    }
-
-    func restore(to pasteboard: NSPasteboard) {
-        pasteboard.clearContents()
-        let restoredItems = items.map { values -> NSPasteboardItem in
-            let item = NSPasteboardItem()
-            for (type, data) in values { item.setData(data, forType: type) }
-            return item
-        }
-        if !restoredItems.isEmpty { pasteboard.writeObjects(restoredItems) }
     }
 }

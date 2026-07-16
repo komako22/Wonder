@@ -27,10 +27,9 @@ public partial class SettingsWindow : Window
         SelectionMethodBox.ItemsSource = new[]
         {
             new Option<SelectionMethod>(SelectionMethod.Automatic, "自动兼容（推荐）"),
-            new Option<SelectionMethod>(SelectionMethod.AccessibilityOnly, "仅 UI Automation"),
-            new Option<SelectionMethod>(SelectionMethod.ClipboardOnly, "仅安全复制")
+            new Option<SelectionMethod>(SelectionMethod.AccessibilityOnly, "仅 UI Automation")
         };
-        SelectionMethodBox.SelectedIndex = Array.IndexOf(Enum.GetValues<SelectionMethod>(), settings.SelectionMethod);
+        SelectionMethodBox.SelectedIndex = settings.SelectionMethod == SelectionMethod.AccessibilityOnly ? 1 : 0;
         BubblePositionBox.ItemsSource = new[]
         {
             new Option<BubblePosition>(BubblePosition.Below, "选区下方"),

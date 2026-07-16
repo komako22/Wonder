@@ -40,9 +40,6 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     internal static extern nint CallNextHookEx(nint hook, int code, nint wParam, nint lParam);
 
-    [DllImport("user32.dll")]
-    internal static extern void keybd_event(byte virtualKey, byte scanCode, uint flags, nuint extraInfo);
-
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
     internal static extern nint GetModuleHandle(string? moduleName);
 
@@ -61,20 +58,6 @@ internal static class NativeMethods
     [DllImport("shcore.dll")]
     internal static extern int GetDpiForMonitor(nint monitor, int dpiType, out uint dpiX, out uint dpiY);
 
-}
-
-internal static class KeyboardInput
-{
-    internal static void SendCopyShortcut()
-    {
-        const byte control = 0x11;
-        const byte keyC = 0x43;
-        const uint keyUp = 0x0002;
-        NativeMethods.keybd_event(control, 0, 0, 0);
-        NativeMethods.keybd_event(keyC, 0, 0, 0);
-        NativeMethods.keybd_event(keyC, 0, keyUp, 0);
-        NativeMethods.keybd_event(control, 0, keyUp, 0);
-    }
 }
 
 internal static class DisplayCoordinates

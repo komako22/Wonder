@@ -6,13 +6,13 @@ Both desktop clients follow the same state machine:
 
 ```text
 mouse down -> hide stale bubble -> mouse up -> configurable debounce
-  -> query accessible element -> if unavailable, safe-copy and restore clipboard
+  -> query accessible element -> if unavailable, do not trigger
   -> read non-empty selection and bounds
   -> show non-activating bubble -> user click -> call translation API
   -> show result/error in transient glass panel
 ```
 
-The debounce prevents a bubble from flashing while the selection is still being adjusted. Clipboard fallback is enabled by default for browser and canvas compatibility, but the previous clipboard payload is restored before the bubble appears. The bubble never triggers translation by itself, so simply selecting private text does not send it over the network.
+The debounce prevents a bubble from flashing while the selection is still being adjusted. Selection is read only through macOS Accessibility or Windows UI Automation; the app never simulates a keyboard copy shortcut and never mutates the clipboard. The bubble never triggers translation by itself, so simply selecting private text does not send it over the network.
 
 macOS reads `AXSelectedText`, `AXSelectedTextRange`, and `AXBoundsForRange` from the focused or pointer-adjacent accessibility element. Windows reads `TextPattern.GetSelection()` from the pointer-adjacent or focused UI Automation element.
 

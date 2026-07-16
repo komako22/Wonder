@@ -63,13 +63,13 @@ public sealed class SelectionMonitor : IDisposable
                     : 0;
                 _mouseDownPoint = null;
                 if (distance >= MinimumDragDistance)
-                    ScheduleRead(hookData.Point.X, hookData.Point.Y, allowClipboardFallback: true);
+                    ScheduleRead(hookData.Point.X, hookData.Point.Y);
             }
         }
         return NativeMethods.CallNextHookEx(_mouseHook, code, message, data);
     }
 
-    private void ScheduleRead(int x, int y, bool allowClipboardFallback)
+    private void ScheduleRead(int x, int y)
     {
         _pendingRead?.Cancel();
         var cancellation = new CancellationTokenSource();
@@ -80,7 +80,7 @@ public sealed class SelectionMonitor : IDisposable
             {
                 await Task.Delay(TimeSpan.FromSeconds(Math.Max(0.05, _settings.SelectionDelay)), cancellation.Token);
                 var inner = await _dispatcher.InvokeAsync(
-                    () => ReadSelectionAsync(x, y, allowClipboardFallback),
+                    () => ReadSelectionAsync(x, y),
                     DispatcherPriority.Background,
                     cancellation.Token);
                 await inner;
@@ -89,70 +89,36 @@ public sealed class SelectionMonitor : IDisposable
         }, cancellation.Token);
     }
 
-    private async Task ReadSelectionAsync(int x, int y, bool allowClipboardFallback)
+    private async Task ReadSelectionAsync(int x, int y)
     {
-        if (_settings.SelectionMethod != SelectionMethod.ClipboardOnly)
-        {
-            var elements = new List<AutomationElement>();
-            try
-            {
-                var pointed = AutomationElement.FromPoint(new UiPoint(x, y));
-                if (pointed is not null) elements.Add(pointed);
-            }
-            catch (ElementNotAvailableException) { }
-            catch (COMException) { }
-
-            try
-            {
-                var focused = AutomationElement.FocusedElement;
-                if (focused is not null) elements.Add(focused);
-            }
-            catch (ElementNotAvailableException) { }
-            catch (COMException) { }
-
-            foreach (var initial in elements)
-            {
-                AutomationElement? element = initial;
-                for (var depth = 0; depth < 8 && element is not null; depth++)
-                {
-                    var snapshot = TryRead(element, x, y);
-                    if (EmitIfNew(snapshot)) return;
-                    try { element = TreeWalker.ControlViewWalker.GetParent(element); }
-                    catch (ElementNotAvailableException) { element = null; }
-                    catch (COMException) { element = null; }
-                }
-            }
-        }
-
-        if (allowClipboardFallback && _settings.SelectionMethod != SelectionMethod.AccessibilityOnly)
-            EmitIfNew(await ReadClipboardSelectionAsync(x, y));
-    }
-
-    private async Task<SelectionSnapshot?> ReadClipboardSelectionAsync(int x, int y)
-    {
-        System.Windows.IDataObject? backup = null;
+        var elements = new List<AutomationElement>();
         try
         {
-            backup = System.Windows.Clipboard.GetDataObject();
-            System.Windows.Clipboard.Clear();
-            KeyboardInput.SendCopyShortcut();
-            await Task.Delay(120);
-            var text = System.Windows.Clipboard.ContainsText()
-                ? System.Windows.Clipboard.GetText().Trim()
-                : string.Empty;
-            if (backup is not null) System.Windows.Clipboard.SetDataObject(backup, true);
-            else System.Windows.Clipboard.Clear();
-            return text.Length is > 0 and <= 8_000
-                ? new SelectionSnapshot(text, new UiRect(x - 4, y - 4, 8, 8))
-                : null;
+            var pointed = AutomationElement.FromPoint(new UiPoint(x, y));
+            if (pointed is not null) elements.Add(pointed);
         }
-        catch (COMException)
+        catch (ElementNotAvailableException) { }
+        catch (COMException) { }
+
+        try
         {
-            if (backup is not null)
+            var focused = AutomationElement.FocusedElement;
+            if (focused is not null) elements.Add(focused);
+        }
+        catch (ElementNotAvailableException) { }
+        catch (COMException) { }
+
+        foreach (var initial in elements)
+        {
+            AutomationElement? element = initial;
+            for (var depth = 0; depth < 8 && element is not null; depth++)
             {
-                try { System.Windows.Clipboard.SetDataObject(backup, true); } catch { }
+                var snapshot = TryRead(element, x, y);
+                if (EmitIfNew(snapshot)) return;
+                try { element = TreeWalker.ControlViewWalker.GetParent(element); }
+                catch (ElementNotAvailableException) { element = null; }
+                catch (COMException) { element = null; }
             }
-            return null;
         }
     }
 

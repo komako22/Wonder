@@ -38,7 +38,7 @@
                     <StackPanel Margin="18">
                         <TextBlock Text="选区读取方式" Foreground="#59657B" Margin="0,0,0,6"/>
                         <ComboBox x:Name="SelectionMethodBox" Padding="8,6" DisplayMemberPath="Name"/>
-                        <TextBlock Text="自动兼容会先使用 UI Automation；失败后短暂复制选区并恢复原剪贴板。"
+                        <TextBlock Text="自动兼容仅使用 UI Automation，不会模拟 Ctrl+C 或修改剪贴板。"
                                    Foreground="#78849A" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,20"/>
                         <TextBlock Text="气泡响应延迟" Foreground="#59657B"/>
                         <Slider x:Name="DelaySlider" Minimum="0.08" Maximum="0.60" TickFrequency="0.02"

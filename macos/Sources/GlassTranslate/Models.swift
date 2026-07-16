@@ -15,6 +15,8 @@ enum SelectionMethod: String, CaseIterable, Identifiable, Codable, Sendable {
     case accessibilityOnly
     case clipboardOnly
 
+    static var allCases: [SelectionMethod] { [.automatic, .accessibilityOnly] }
+
     var id: String { rawValue }
     var title: String {
         switch self {

@@ -10,7 +10,7 @@ Wonder 是一款常驻 macOS 菜单栏和 Windows 系统托盘的原生划词翻
   <strong>macOS · Windows · 免费翻译 · 后台常驻 · 隐私优先</strong>
 </p>
 
-> 当前版本：**0.5.3**。提供 Apple Silicon macOS 安装包与 64 位 Windows 单文件程序。
+> 当前版本：**0.5.4**。提供 Apple Silicon macOS 安装包与 64 位 Windows 单文件程序。
 
 ## 功能一览
 
@@ -22,7 +22,7 @@ Wonder 是一款常驻 macOS 菜单栏和 Windows 系统托盘的原生划词翻
 - **多语言选择**：支持自动检测，以及简体中文、繁体中文、美式英语、英式英语、日语、韩语、法语、德语、西班牙语、俄语、意大利语和葡萄牙语等。
 - **菜单栏快捷翻译**：macOS 左键点击 Wonder 图标即可打开输入翻译界面；输入停止后自动翻译，无需点击“翻译”按钮。
 - **可调设置**：选区读取方式、响应延迟、气泡大小与位置、玻璃主题、译文字号、是否显示原文和开机启动。
-- **安全读取策略**：优先读取系统辅助功能 / UI Automation；必要时使用短暂剪贴板兜底，并在读取后恢复原剪贴板内容。
+- **安全读取策略**：只读取系统辅助功能 / UI Automation，不模拟 `⌘C`、`Ctrl+C`，也不修改剪贴板。
 
 ## 下载与运行
 
@@ -30,8 +30,8 @@ Wonder 是一款常驻 macOS 菜单栏和 Windows 系统托盘的原生划词翻
 
 选择一种安装包：
 
-- [下载 DMG 安装镜像](https://github.com/komako22/Wonder/releases/download/v0.5.3/Wonder-v0.5.3-macOS-arm64.dmg)
-- [下载 APP ZIP 压缩包](https://github.com/komako22/Wonder/releases/download/v0.5.3/Wonder-v0.5.3-macOS-arm64.zip)
+- [下载 DMG 安装镜像](https://github.com/komako22/Wonder/releases/download/v0.5.4/Wonder-v0.5.4-macOS-arm64.dmg)
+- [下载 APP ZIP 压缩包](https://github.com/komako22/Wonder/releases/download/v0.5.4/Wonder-v0.5.4-macOS-arm64.zip)
 
 打开 DMG 后将 `Wonder.app` 拖入“应用程序”；如果下载 ZIP，请先解压再移动应用。首次使用划词功能时，请在：
 
@@ -45,7 +45,7 @@ Wonder 是一款常驻 macOS 菜单栏和 Windows 系统托盘的原生划词翻
 
 下载适用于 Intel/AMD 64 位 Windows 的自包含单文件程序：
 
-[下载 Wonder-v0.5.3-windows-x64.exe](https://github.com/komako22/Wonder/releases/download/v0.5.3/Wonder-v0.5.3-windows-x64.exe)
+[下载 Wonder-v0.5.4-windows-x64.exe](https://github.com/komako22/Wonder/releases/download/v0.5.4/Wonder-v0.5.4-windows-x64.exe)
 
 程序无需预装 .NET 8，也不需要管理员权限，启动后会出现在系统托盘。当前 EXE 尚未使用商业代码签名证书，Windows SmartScreen 可能显示“未知发布者”；请确认文件来自本仓库的 Release 页面。
 
@@ -126,7 +126,7 @@ Wonder 的设计目标是“只在用户明确点击后翻译”：
 - 语言偏好和可选的 MyMemory 联系邮箱保存在本地设置中；
 - 辅助功能权限只用于读取当前选区和定位气泡，不用于录屏；
 - 对密码框和安全输入控件会主动跳过；
-- 剪贴板兜底读取完成后会恢复原剪贴板内容。
+- 不会通过模拟键盘快捷键读取选区，因此不会在后台额外发送 `C` 键或修改剪贴板。
 
 MyMemory 是第三方免费翻译服务。使用免费接口时，选中文本会发送到 MyMemory 服务器，具体数据保留和服务条款请以其官方政策为准。对敏感内容，请不要使用在线翻译服务。
 
