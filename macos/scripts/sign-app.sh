@@ -3,6 +3,21 @@ set -euo pipefail
 
 APP="${1:?Usage: sign-app.sh /path/to/Wonder.app}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SIGNING_MODE="${WONDER_SIGNING_MODE:-local}"
+
+if [[ "$SIGNING_MODE" == "adhoc" ]]; then
+  codesign --force --deep \
+    --sign - \
+    --identifier com.wonder.translate \
+    "$APP"
+  exit 0
+fi
+
+if [[ "$SIGNING_MODE" != "local" ]]; then
+  echo "Unsupported WONDER_SIGNING_MODE: $SIGNING_MODE (expected local or adhoc)." >&2
+  exit 1
+fi
+
 SIGNING_DIR="$ROOT/.local-signing"
 KEYCHAIN="$SIGNING_DIR/WonderDevelopment.keychain-db"
 PASSWORD_FILE="$SIGNING_DIR/keychain-password"
