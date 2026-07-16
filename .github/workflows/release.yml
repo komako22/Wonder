@@ -3,7 +3,7 @@ name: Publish release
 on:
   push:
     tags:
-      - v0.5.2
+      - v0.5.3
 
 permissions:
   contents: write
@@ -26,8 +26,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_REF_NAME" = "v0.5.2"
-          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' macos/Resources/Info.plist | grep -Fx '0.5.2'
+          test "$GITHUB_REF_NAME" = "v0.5.3"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' macos/Resources/Info.plist | grep -Fx '0.5.3'
 
       - name: Build and ad-hoc sign Wonder
         working-directory: macos
@@ -54,14 +54,14 @@ jobs:
             -srcfolder "$STAGING" \
             -ov \
             -format UDZO \
-            "$DIST/Wonder-v0.5.2-macOS-arm64.dmg"
+            "$DIST/Wonder-v0.5.3-macOS-arm64.dmg"
           ditto -c -k --sequesterRsrc --keepParent \
             "$APP" \
-            "$DIST/Wonder-v0.5.2-macOS-arm64.zip"
+            "$DIST/Wonder-v0.5.3-macOS-arm64.zip"
 
-          hdiutil verify "$DIST/Wonder-v0.5.2-macOS-arm64.dmg"
-          unzip -t "$DIST/Wonder-v0.5.2-macOS-arm64.zip"
-          unzip -Z1 "$DIST/Wonder-v0.5.2-macOS-arm64.zip" | grep -q '^Wonder.app/Contents/MacOS/Wonder$'
+          hdiutil verify "$DIST/Wonder-v0.5.3-macOS-arm64.dmg"
+          unzip -t "$DIST/Wonder-v0.5.3-macOS-arm64.zip"
+          unzip -Z1 "$DIST/Wonder-v0.5.3-macOS-arm64.zip" | grep -q '^Wonder.app/Contents/MacOS/Wonder$'
 
       - name: Upload macOS assets
         uses: actions/upload-artifact@v5
@@ -86,7 +86,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          if ($env:GITHUB_REF_NAME -ne "v0.5.2") { throw "Unexpected release tag." }
+          if ($env:GITHUB_REF_NAME -ne "v0.5.3") { throw "Unexpected release tag." }
           $project = "windows/GlassTranslate.Windows/GlassTranslate.Windows.csproj"
           $publish = Join-Path $env:RUNNER_TEMP "wonder-publish"
           $dist = Join-Path $env:RUNNER_TEMP "wonder-dist"
@@ -100,13 +100,13 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:DebugType=None `
             -p:DebugSymbols=false `
-            -p:Version=0.5.2 `
-            -p:AssemblyVersion=0.5.2.0 `
-            -p:FileVersion=0.5.2.0 `
+            -p:Version=0.5.3 `
+            -p:AssemblyVersion=0.5.3.0 `
+            -p:FileVersion=0.5.3.0 `
             -o $publish
 
           $source = Join-Path $publish "Wonder.exe"
-          $target = Join-Path $dist "Wonder-v0.5.2-windows-x64.exe"
+          $target = Join-Path $dist "Wonder-v0.5.3-windows-x64.exe"
           if (-not (Test-Path $source)) { throw "Wonder.exe was not produced." }
           Copy-Item $source $target
           if ((Get-ChildItem $dist -Filter *.exe).Count -ne 1) { throw "Unexpected Windows asset count." }
@@ -116,7 +116,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: windows-release
-          path: ${{ runner.temp }}/wonder-dist/Wonder-v0.5.2-windows-x64.exe
+          path: ${{ runner.temp }}/wonder-dist/Wonder-v0.5.3-windows-x64.exe
           if-no-files-found: error
 
   release:
@@ -137,20 +137,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s dist/Wonder-v0.5.2-macOS-arm64.dmg
-          test -s dist/Wonder-v0.5.2-macOS-arm64.zip
-          test -s dist/Wonder-v0.5.2-windows-x64.exe
+          test -s dist/Wonder-v0.5.3-macOS-arm64.dmg
+          test -s dist/Wonder-v0.5.3-macOS-arm64.zip
+          test -s dist/Wonder-v0.5.3-windows-x64.exe
           test "$(find dist -maxdepth 1 -type f | wc -l)" -eq 3
 
-      - name: Publish v0.5.2
+      - name: Publish v0.5.3
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            dist/Wonder-v0.5.2-macOS-arm64.dmg \
-            dist/Wonder-v0.5.2-macOS-arm64.zip \
-            dist/Wonder-v0.5.2-windows-x64.exe \
+            dist/Wonder-v0.5.3-macOS-arm64.dmg \
+            dist/Wonder-v0.5.3-macOS-arm64.zip \
+            dist/Wonder-v0.5.3-windows-x64.exe \
             --verify-tag \
             --latest \
-            --title "Wonder v0.5.2" \
-            --notes-file docs/RELEASE_NOTES_v0.5.2.md
+            --title "Wonder v0.5.3" \
+            --notes-file docs/RELEASE_NOTES_v0.5.3.md

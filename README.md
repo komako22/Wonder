@@ -10,7 +10,7 @@ Wonder 是一款常驻 macOS 菜单栏和 Windows 系统托盘的原生划词翻
   <strong>macOS · Windows · 免费翻译 · 后台常驻 · 隐私优先</strong>
 </p>
 
-> 当前版本：**0.5.2**。提供 Apple Silicon macOS 安装包与 64 位 Windows 单文件程序。
+> 当前版本：**0.5.3**。提供 Apple Silicon macOS 安装包与 64 位 Windows 单文件程序。
 
 ## 功能一览
 
@@ -30,8 +30,8 @@ Wonder 是一款常驻 macOS 菜单栏和 Windows 系统托盘的原生划词翻
 
 选择一种安装包：
 
-- [下载 DMG 安装镜像](https://github.com/komako22/Wonder/releases/download/v0.5.2/Wonder-v0.5.2-macOS-arm64.dmg)
-- [下载 APP ZIP 压缩包](https://github.com/komako22/Wonder/releases/download/v0.5.2/Wonder-v0.5.2-macOS-arm64.zip)
+- [下载 DMG 安装镜像](https://github.com/komako22/Wonder/releases/download/v0.5.3/Wonder-v0.5.3-macOS-arm64.dmg)
+- [下载 APP ZIP 压缩包](https://github.com/komako22/Wonder/releases/download/v0.5.3/Wonder-v0.5.3-macOS-arm64.zip)
 
 打开 DMG 后将 `Wonder.app` 拖入“应用程序”；如果下载 ZIP，请先解压再移动应用。首次使用划词功能时，请在：
 
@@ -45,7 +45,7 @@ Wonder 是一款常驻 macOS 菜单栏和 Windows 系统托盘的原生划词翻
 
 下载适用于 Intel/AMD 64 位 Windows 的自包含单文件程序：
 
-[下载 Wonder-v0.5.2-windows-x64.exe](https://github.com/komako22/Wonder/releases/download/v0.5.2/Wonder-v0.5.2-windows-x64.exe)
+[下载 Wonder-v0.5.3-windows-x64.exe](https://github.com/komako22/Wonder/releases/download/v0.5.3/Wonder-v0.5.3-windows-x64.exe)
 
 程序无需预装 .NET 8，也不需要管理员权限，启动后会出现在系统托盘。当前 EXE 尚未使用商业代码签名证书，Windows SmartScreen 可能显示“未知发布者”；请确认文件来自本仓库的 Release 页面。
 

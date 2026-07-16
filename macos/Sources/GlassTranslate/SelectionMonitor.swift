@@ -10,7 +10,9 @@ final class SelectionMonitor {
     private var monitors: [Any] = []
     private var pendingTask: Task<Void, Never>?
     private var lastSignature = ""
+    private var mouseDownLocation: CGPoint?
     private let maximumCharacters = 8_000
+    private let minimumDragDistance: CGFloat = 4
     private let settings: SettingsStore
 
     init(settings: SettingsStore) {
@@ -25,6 +27,7 @@ final class SelectionMonitor {
         stop()
         if let monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown], handler: { [weak self] _ in
             Task { @MainActor in
+                self?.mouseDownLocation = NSEvent.mouseLocation
                 self?.pendingTask?.cancel()
                 self?.lastSignature = ""
                 self?.onSelectionStarted?()
@@ -32,14 +35,17 @@ final class SelectionMonitor {
         }) {
             monitors.append(monitor)
         }
-        if let monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp], handler: { [weak self] _ in
-            Task { @MainActor in self?.scheduleRead() }
-        }) {
-            monitors.append(monitor)
-        }
-        if let monitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyUp], handler: { [weak self] event in
-            if event.modifierFlags.contains(.shift) {
-                Task { @MainActor in self?.scheduleRead() }
+        if let monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp], handler: { [weak self] event in
+            Task { @MainActor in
+                guard let self else { return }
+                let currentLocation = NSEvent.mouseLocation
+                let distance = self.mouseDownLocation.map { hypot(currentLocation.x - $0.x, currentLocation.y - $0.y) } ?? 0
+                let isDrag = distance >= self.minimumDragDistance
+                let isDoubleClick = event.clickCount >= 2
+                let isShiftSelection = event.modifierFlags.contains(.shift)
+                self.mouseDownLocation = nil
+                guard isDrag || isDoubleClick || isShiftSelection else { return }
+                self.scheduleRead(allowClipboardFallback: isDrag || isShiftSelection)
             }
         }) {
             monitors.append(monitor)
@@ -53,22 +59,22 @@ final class SelectionMonitor {
         monitors.removeAll()
     }
 
-    private func scheduleRead() {
+    private func scheduleRead(allowClipboardFallback: Bool) {
         pendingTask?.cancel()
         let nanoseconds = UInt64(max(0.05, settings.selectionDelay) * 1_000_000_000)
         pendingTask = Task { [weak self] in
             try? await Task<Never, Never>.sleep(nanoseconds: nanoseconds)
             guard !Task.isCancelled else { return }
-            await self?.readSelection()
+            await self?.readSelection(allowClipboardFallback: allowClipboardFallback)
         }
     }
 
-    private func readSelection() async {
+    private func readSelection(allowClipboardFallback: Bool) async {
         var result: SelectionSnapshot?
         if hasAccessibilityPermission, settings.selectionMethod != .clipboardOnly {
             result = readAccessibilitySelection()
         }
-        if result == nil, settings.selectionMethod != .accessibilityOnly {
+        if result == nil, allowClipboardFallback, settings.selectionMethod != .accessibilityOnly {
             result = await readClipboardSelection()
         }
         guard let result, result.signature != lastSignature else { return }

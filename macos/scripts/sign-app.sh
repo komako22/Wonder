@@ -67,9 +67,23 @@ fi
 PASSWORD="$(<"$PASSWORD_FILE")"
 security unlock-keychain -p "$PASSWORD" "$KEYCHAIN"
 
-CURRENT_KEYCHAINS="$(security list-keychains -d user)"
-if ! grep -Fq "$KEYCHAIN" <<< "$CURRENT_KEYCHAINS"; then
-  eval "security list-keychains -d user -s \"$KEYCHAIN\" $CURRENT_KEYCHAINS" >/dev/null
+CURRENT_KEYCHAINS=()
+while IFS= read -r CURRENT_KEYCHAIN; do
+  CURRENT_KEYCHAIN="${CURRENT_KEYCHAIN//\"/}"
+  CURRENT_KEYCHAIN="${CURRENT_KEYCHAIN#${CURRENT_KEYCHAIN%%[![:space:]]*}}"
+  [[ -n "$CURRENT_KEYCHAIN" ]] && CURRENT_KEYCHAINS+=("$CURRENT_KEYCHAIN")
+done < <(security list-keychains -d user)
+
+KEYCHAIN_REGISTERED=false
+for CURRENT_KEYCHAIN in "${CURRENT_KEYCHAINS[@]}"; do
+  if [[ "$CURRENT_KEYCHAIN" == "$KEYCHAIN" ]]; then
+    KEYCHAIN_REGISTERED=true
+    break
+  fi
+done
+
+if [[ "$KEYCHAIN_REGISTERED" == false ]]; then
+  security list-keychains -d user -s "$KEYCHAIN" "${CURRENT_KEYCHAINS[@]}" >/dev/null
 fi
 
 IDENTITY_HASH="$(security find-identity -v -p codesigning "$KEYCHAIN" | awk -v name="$IDENTITY_NAME" 'index($0, name) { print $2; exit }')"

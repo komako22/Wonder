@@ -16,6 +16,8 @@ public sealed class SelectionMonitor : IDisposable
     private nint _mouseHook;
     private CancellationTokenSource? _pendingRead;
     private string _lastSignature = string.Empty;
+    private UiPoint? _mouseDownPoint;
+    private const double MinimumDragDistance = 4;
     private bool _disposed;
 
     public event Action? SelectionStarted;
@@ -46,6 +48,8 @@ public sealed class SelectionMonitor : IDisposable
         {
             if (message == NativeMethods.WmLButtonDown)
             {
+                var hookData = Marshal.PtrToStructure<NativeMethods.MsLlHookStruct>(data);
+                _mouseDownPoint = new UiPoint(hookData.Point.X, hookData.Point.Y);
                 _pendingRead?.Cancel();
                 _lastSignature = string.Empty;
                 _dispatcher.BeginInvoke(() => SelectionStarted?.Invoke());
@@ -53,13 +57,19 @@ public sealed class SelectionMonitor : IDisposable
             else if (message == NativeMethods.WmLButtonUp)
             {
                 var hookData = Marshal.PtrToStructure<NativeMethods.MsLlHookStruct>(data);
-                ScheduleRead(hookData.Point.X, hookData.Point.Y);
+                var point = new UiPoint(hookData.Point.X, hookData.Point.Y);
+                var distance = _mouseDownPoint is { } start
+                    ? Math.Sqrt(Math.Pow(point.X - start.X, 2) + Math.Pow(point.Y - start.Y, 2))
+                    : 0;
+                _mouseDownPoint = null;
+                if (distance >= MinimumDragDistance)
+                    ScheduleRead(hookData.Point.X, hookData.Point.Y, allowClipboardFallback: true);
             }
         }
         return NativeMethods.CallNextHookEx(_mouseHook, code, message, data);
     }
 
-    private void ScheduleRead(int x, int y)
+    private void ScheduleRead(int x, int y, bool allowClipboardFallback)
     {
         _pendingRead?.Cancel();
         var cancellation = new CancellationTokenSource();
@@ -70,7 +80,7 @@ public sealed class SelectionMonitor : IDisposable
             {
                 await Task.Delay(TimeSpan.FromSeconds(Math.Max(0.05, _settings.SelectionDelay)), cancellation.Token);
                 var inner = await _dispatcher.InvokeAsync(
-                    () => ReadSelectionAsync(x, y),
+                    () => ReadSelectionAsync(x, y, allowClipboardFallback),
                     DispatcherPriority.Background,
                     cancellation.Token);
                 await inner;
@@ -79,7 +89,7 @@ public sealed class SelectionMonitor : IDisposable
         }, cancellation.Token);
     }
 
-    private async Task ReadSelectionAsync(int x, int y)
+    private async Task ReadSelectionAsync(int x, int y, bool allowClipboardFallback)
     {
         if (_settings.SelectionMethod != SelectionMethod.ClipboardOnly)
         {
@@ -114,7 +124,7 @@ public sealed class SelectionMonitor : IDisposable
             }
         }
 
-        if (_settings.SelectionMethod != SelectionMethod.AccessibilityOnly)
+        if (allowClipboardFallback && _settings.SelectionMethod != SelectionMethod.AccessibilityOnly)
             EmitIfNew(await ReadClipboardSelectionAsync(x, y));
     }
 
