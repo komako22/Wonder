@@ -167,7 +167,7 @@ public sealed class SelectionMonitor : IDisposable
                 var text = range.GetText(8_001).Trim();
                 if (text.Length is 0 or > 8_000) continue;
                 var bounds = range.GetBoundingRectangles();
-                var rect = BoundsFromArray(bounds) ?? new UiRect(pointerX - 4, pointerY - 4, 8, 8);
+                var rect = BoundsFromRectangles(bounds) ?? new UiRect(pointerX - 4, pointerY - 4, 8, 8);
                 return new SelectionSnapshot(text, rect);
             }
         }
@@ -177,20 +177,20 @@ public sealed class SelectionMonitor : IDisposable
         return null;
     }
 
-    private static UiRect? BoundsFromArray(double[] values)
+    private static UiRect? BoundsFromRectangles(UiRect[] values)
     {
-        if (values.Length < 4) return null;
+        if (values.Length == 0) return null;
         var left = double.PositiveInfinity;
         var top = double.PositiveInfinity;
         var right = double.NegativeInfinity;
         var bottom = double.NegativeInfinity;
-        for (var index = 0; index + 3 < values.Length; index += 4)
+        foreach (var value in values)
         {
-            if (values[index + 2] <= 0 || values[index + 3] <= 0) continue;
-            left = Math.Min(left, values[index]);
-            top = Math.Min(top, values[index + 1]);
-            right = Math.Max(right, values[index] + values[index + 2]);
-            bottom = Math.Max(bottom, values[index + 1] + values[index + 3]);
+            if (value.Width <= 0 || value.Height <= 0) continue;
+            left = Math.Min(left, value.Left);
+            top = Math.Min(top, value.Top);
+            right = Math.Max(right, value.Right);
+            bottom = Math.Max(bottom, value.Bottom);
         }
         return double.IsInfinity(left) ? null : new UiRect(left, top, right - left, bottom - top);
     }
