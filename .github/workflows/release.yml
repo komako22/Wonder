@@ -14,7 +14,13 @@ jobs:
     runs-on: macos-14
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Select Swift 6 toolchain
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer
+          xcodebuild -version
+          swift --version
 
       - name: Verify release version
         shell: bash
@@ -69,10 +75,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up .NET 8
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
 
@@ -119,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out release notes
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download release assets
         uses: actions/download-artifact@v4
