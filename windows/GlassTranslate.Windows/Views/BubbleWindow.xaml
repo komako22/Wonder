@@ -1,0 +1,18 @@
+<Window x:Class="GlassTranslate.Windows.Views.BubbleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="60" Height="48"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True"
+        WindowStartupLocation="Manual">
+    <Grid>
+        <Border x:Name="BubbleBorder" Width="38" Height="38" CornerRadius="10"
+                Background="Transparent"
+                MouseLeftButtonUp="Bubble_OnMouseLeftButtonUp">
+            <Border.Effect>
+                <DropShadowEffect Color="#520E2A66" BlurRadius="14" ShadowDepth="3" Opacity="0.45"/>
+            </Border.Effect>
+            <Image Source="/Assets/Wonder.png" Stretch="Uniform" SnapsToDevicePixels="True"/>
+        </Border>
+    </Grid>
+</Window>

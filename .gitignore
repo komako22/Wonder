@@ -1,0 +1,12 @@
+.DS_Store
+.build/
+macos/.local-signing/
+DerivedData/
+bin/
+obj/
+*.user
+*.suo
+*.app
+*.dmg
+*.msix
+*.zip
