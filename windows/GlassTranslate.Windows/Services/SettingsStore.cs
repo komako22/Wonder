@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using GlassTranslate.Windows.Models;
@@ -81,7 +82,8 @@ public sealed class SettingsStore
         }
 
         var processPath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
-        var entryPath = Assembly.GetEntryAssembly()?.Location ?? string.Empty;
+        var entryName = Assembly.GetEntryAssembly()?.GetName().Name ?? "Wonder";
+        var entryPath = Path.Combine(AppContext.BaseDirectory, $"{entryName}.dll");
         var command = Path.GetFileNameWithoutExtension(processPath).Equals("dotnet", StringComparison.OrdinalIgnoreCase)
             ? $"\"{processPath}\" \"{entryPath}\""
             : $"\"{processPath}\"";

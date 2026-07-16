@@ -63,7 +63,7 @@ public partial class ResultWindow : Window
     private void ResizeForContent()
     {
         var contentWidth = Math.Max(280, Width - 64);
-        ResultText.Measure(new Size(contentWidth, double.PositiveInfinity));
+        ResultText.Measure(new System.Windows.Size(contentWidth, double.PositiveInfinity));
         var sourceHeight = SourcePanel.Visibility == Visibility.Visible
             ? Math.Min(62, SourcePanel.DesiredSize.Height)
             : 0;
@@ -81,7 +81,7 @@ public partial class ResultWindow : Window
 
     private void Copy_OnClick(object sender, RoutedEventArgs e)
     {
-        if (!string.IsNullOrWhiteSpace(ResultText.Text)) Clipboard.SetText(ResultText.Text);
+        if (!string.IsNullOrWhiteSpace(ResultText.Text)) System.Windows.Clipboard.SetText(ResultText.Text);
     }
 
     private async void Retry_OnClick(object sender, RoutedEventArgs e) => await TranslateAsync();

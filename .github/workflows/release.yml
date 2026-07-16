@@ -64,7 +64,7 @@ jobs:
           unzip -Z1 "$DIST/Wonder-v0.5.2-macOS-arm64.zip" | grep -q '^Wonder.app/Contents/MacOS/Wonder$'
 
       - name: Upload macOS assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: macos-release
           path: ${{ runner.temp }}/wonder-dist/*
@@ -113,7 +113,7 @@ jobs:
           if ((Get-Item $target).Length -lt 1MB) { throw "Published executable is unexpectedly small." }
 
       - name: Upload Windows asset
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: windows-release
           path: ${{ runner.temp }}/wonder-dist/Wonder-v0.5.2-windows-x64.exe
@@ -128,7 +128,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download release assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: dist
           merge-multiple: true
